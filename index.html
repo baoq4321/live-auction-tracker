@@ -16,7 +16,7 @@
       padding: 40px;
       border-radius: 20px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 600px;
+      max-width: 800px;
       margin: auto;
     }
     h1 {
@@ -47,22 +47,24 @@
     button:hover {
       background: #3d66cc;
     }
-    .donation-log {
-      margin-top: 30px;
-      text-align: left;
-      max-height: 200px;
-      overflow-y: auto;
-      border-top: 1px solid #ddd;
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 200px;
+      margin-top: 40px;
+      border-top: 2px solid #ddd;
       padding-top: 20px;
     }
-    .donation-log ul {
-      padding-left: 0;
-      list-style: none;
-    }
-    .donation-log li {
-      padding: 5px 0;
-      border-bottom: 1px dashed #ccc;
-      font-size: 1rem;
+    .bar {
+      width: 40px;
+      background-color: #5081F5;
+      color: white;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      font-size: 0.8rem;
+      border-radius: 4px 4px 0 0;
     }
   </style>
   <!-- Firebase SDK -->
@@ -77,10 +79,7 @@
     <br />
     <button onclick="addDonation()">Xác nhận chuyển</button>
 
-    <div class="donation-log">
-      <h3>Lịch sử đóng góp</h3>
-      <ul id="donation-list"></ul>
-    </div>
+    <div class="bar-chart" id="bar-chart"></div>
   </div>
 
   <script>
@@ -119,20 +118,29 @@
       }
     }
 
+    function renderBars(data) {
+      const chart = document.getElementById('bar-chart');
+      chart.innerHTML = '';
+      data.forEach(item => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = Math.min(item.amount / 10, 200) + 'px';
+        bar.textContent = item.amount;
+        chart.appendChild(bar);
+      });
+    }
+
     totalRef.on("value", snapshot => {
       const total = snapshot.val() || 0;
       updateDisplay(total);
     });
 
     logRef.on("value", snapshot => {
-      const list = document.getElementById('donation-list');
-      list.innerHTML = '';
+      const data = [];
       snapshot.forEach(child => {
-        const val = child.val();
-        const li = document.createElement('li');
-        li.textContent = '+ ' + formatCurrency(val.amount);
-        list.appendChild(li);
+        data.push(child.val());
       });
+      renderBars(data);
     });
   </script>
 </body>
