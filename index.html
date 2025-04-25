@@ -44,12 +44,6 @@
             height: 40px;
         }
 
-        .row {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-        }
-
         .money-column {
             width: 50px;
             height: 200px;
@@ -103,16 +97,10 @@
         <div class="amount-display">
             <span id="moneyAmount">0</span> VND
         </div>
-        <div class="row">
-            <!-- Cột tiền bên trái -->
-            <div class="money-column">
-                <div id="moneyBar" class="bar"></div>
-            </div>
+        <div class="right-column">
             <!-- Cột tiền bên phải -->
-            <div class="right-column">
-                <div class="money-column">
-                    <div id="rightMoneyBar" class="bar"></div>
-                </div>
+            <div class="money-column">
+                <div id="rightMoneyBar" class="bar"></div>
             </div>
         </div>
         <div class="controls">
@@ -142,7 +130,6 @@
             let inputAmount = document.getElementById('moneyInput').value;
             if (inputAmount && !isNaN(inputAmount)) {
                 let moneyElement = document.getElementById('moneyAmount');
-                let moneyBar = document.getElementById('moneyBar');
                 let rightMoneyBar = document.getElementById('rightMoneyBar');
                 let currentAmount = 0;
                 let targetAmount = parseInt(inputAmount);
@@ -164,13 +151,9 @@
                     
                     moneyElement.textContent = currentAmount;
 
-                    // Cập nhật chiều cao cột tiền bên trái
-                    let barHeight = (currentAmount / 10000000000) * 200; // Giới hạn 10 tỷ
-                    moneyBar.style.height = barHeight + "px";
-
                     // Cập nhật chiều cao cột tiền bên phải
-                    let rightBarHeight = (currentAmount / 10000000000) * 200; // Giới hạn 10 tỷ
-                    rightMoneyBar.style.height = rightBarHeight + "px";
+                    let barHeight = (currentAmount / 10000000000) * 200; // Giới hạn 10 tỷ
+                    rightMoneyBar.style.height = barHeight + "px";
 
                     // Dừng hiệu ứng khi số tiền đạt giá trị yêu cầu
                     if (currentAmount === targetAmount) {
@@ -188,7 +171,6 @@
             if (data && data.amount) {
                 document.getElementById('moneyAmount').textContent = data.amount;
                 let barHeight = (data.amount / 10000000000) * 200; // Giới hạn 10 tỷ
-                document.getElementById('moneyBar').style.height = barHeight + "px";
                 document.getElementById('rightMoneyBar').style.height = barHeight + "px";
             }
         });
