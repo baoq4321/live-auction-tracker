@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chuyển tiền quyên gópr</title>
+  <title>Live Auction Donation Tracker</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -47,24 +47,10 @@
     button:hover {
       background: #3d66cc;
     }
-    .bar-chart {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      height: 200px;
+    h2 {
       margin-top: 40px;
-      border-top: 2px solid #ddd;
-      padding-top: 20px;
-    }
-    .bar {
-      width: 40px;
-      background-color: #5081F5;
-      color: white;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      font-size: 0.8rem;
-      border-radius: 4px 4px 0 0;
+      font-size: 1.5rem;
+      color: #333;
     }
   </style>
   <!-- Firebase SDK -->
@@ -78,8 +64,7 @@
     <input type="number" id="donation-input" placeholder="Nhập số tiền..." />
     <br />
     <button onclick="addDonation()">Xác nhận chuyển</button>
-
-    <div class="bar-chart" id="bar-chart"></div>
+    <h2>Lịch sử chuyển tiền</h2>
   </div>
 
   <script>
@@ -136,29 +121,9 @@
       }
     }
 
-    function renderBars(data) {
-      const chart = document.getElementById('bar-chart');
-      chart.innerHTML = '';
-      data.forEach(item => {
-        const bar = document.createElement('div');
-        bar.className = 'bar';
-        bar.style.height = Math.min(item.amount / 10, 200) + 'px';
-        bar.textContent = item.amount;
-        chart.appendChild(bar);
-      });
-    }
-
     totalRef.on("value", snapshot => {
       const total = snapshot.val() || 0;
       updateDisplay(total);
-    });
-
-    logRef.on("value", snapshot => {
-      const data = [];
-      snapshot.forEach(child => {
-        data.push(child.val());
-      });
-      renderBars(data);
     });
   </script>
 </body>
