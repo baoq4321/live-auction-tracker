@@ -26,6 +26,8 @@
       font-size: 3rem;
       color: #5081F5;
       margin: 20px 0;
+      position: relative;
+      transition: transform 0.5s ease;
     }
     input[type="number"] {
       padding: 10px;
@@ -103,7 +105,15 @@
     }
 
     function updateDisplay(total) {
-      document.getElementById('amount-display').textContent = formatCurrency(total);
+      const amountDisplay = document.getElementById('amount-display');
+      
+      // Add "move up and down" animation on update
+      amountDisplay.style.transform = 'translateY(-20px)';
+      
+      setTimeout(() => {
+        amountDisplay.style.transform = 'translateY(0)';
+        amountDisplay.textContent = formatCurrency(total);
+      }, 500);
     }
 
     function addDonation() {
