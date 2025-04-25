@@ -25,7 +25,10 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         h1 {
@@ -37,13 +40,21 @@
             font-weight: bold;
             color: #2ecc71;
             margin: 20px 0;
+            overflow: hidden;
+            height: 40px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            width: 100%;
         }
 
         .money-column {
             width: 50px;
             height: 200px;
             background-color: #f5f5f5;
-            margin: 10px auto;
+            margin: 10px;
             border-radius: 5px;
             overflow: hidden;
         }
@@ -76,6 +87,14 @@
         .controls button:hover {
             background-color: #2980b9;
         }
+
+        /* Styling for the right column */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -84,11 +103,20 @@
         <div class="amount-display">
             <span id="moneyAmount">0</span> VND
         </div>
-        <div class="money-column">
-            <div id="moneyBar" class="bar"></div>
+        <div class="row">
+            <!-- Cột tiền bên trái -->
+            <div class="money-column">
+                <div id="moneyBar" class="bar"></div>
+            </div>
+            <!-- Cột tiền bên phải -->
+            <div class="right-column">
+                <div class="money-column">
+                    <div id="rightMoneyBar" class="bar"></div>
+                </div>
+            </div>
         </div>
         <div class="controls">
-            <input type="number" id="moneyInput" placeholder="Nhập số tiền" />
+            <input type="number" id="moneyInput" placeholder="Nhập số tiền (0-10 tỷ)" min="0" max="10000000000" />
             <button onclick="simulateTransfer()">Chuyển Tiền</button>
         </div>
     </div>
@@ -109,12 +137,13 @@
         const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Hàm giả lập chuyển tiền và cập nhật Firebase
+        // Hàm giả lập chuyển tiền với hiệu ứng số tiền chạy lên/xuống
         function simulateTransfer() {
             let inputAmount = document.getElementById('moneyInput').value;
             if (inputAmount && !isNaN(inputAmount)) {
                 let moneyElement = document.getElementById('moneyAmount');
                 let moneyBar = document.getElementById('moneyBar');
+                let rightMoneyBar = document.getElementById('rightMoneyBar');
                 let currentAmount = 0;
                 let targetAmount = parseInt(inputAmount);
                 
@@ -123,14 +152,28 @@
                     amount: targetAmount
                 });
 
+                // Hiệu ứng số tiền chạy lên/xuống
                 let interval = setInterval(() => {
                     if (currentAmount < targetAmount) {
                         currentAmount += Math.ceil(targetAmount / 50);  // tốc độ tăng số tiền
                         if (currentAmount > targetAmount) currentAmount = targetAmount;
-                        moneyElement.textContent = currentAmount;
-                        let barHeight = (currentAmount / targetAmount) * 200; // chiều cao cột tiền
-                        moneyBar.style.height = barHeight + "px";
-                    } else {
+                    } else if (currentAmount > targetAmount) {
+                        currentAmount -= Math.ceil(targetAmount / 50);  // số tiền chạy xuống nếu nhập số tiền nhỏ hơn
+                        if (currentAmount < targetAmount) currentAmount = targetAmount;
+                    }
+                    
+                    moneyElement.textContent = currentAmount;
+
+                    // Cập nhật chiều cao cột tiền bên trái
+                    let barHeight = (currentAmount / 10000000000) * 200; // Giới hạn 10 tỷ
+                    moneyBar.style.height = barHeight + "px";
+
+                    // Cập nhật chiều cao cột tiền bên phải
+                    let rightBarHeight = (currentAmount / 10000000000) * 200; // Giới hạn 10 tỷ
+                    rightMoneyBar.style.height = rightBarHeight + "px";
+
+                    // Dừng hiệu ứng khi số tiền đạt giá trị yêu cầu
+                    if (currentAmount === targetAmount) {
                         clearInterval(interval);
                     }
                 }, 50);
@@ -144,8 +187,9 @@
             const data = snapshot.val();
             if (data && data.amount) {
                 document.getElementById('moneyAmount').textContent = data.amount;
-                let barHeight = (data.amount / 1000) * 200; // giả sử 1000 là số tiền tối đa
+                let barHeight = (data.amount / 10000000000) * 200; // Giới hạn 10 tỷ
                 document.getElementById('moneyBar').style.height = barHeight + "px";
+                document.getElementById('rightMoneyBar').style.height = barHeight + "px";
             }
         });
     </script>
