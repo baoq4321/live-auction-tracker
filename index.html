@@ -1,157 +1,153 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Auction Donation Tracker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f2f2f2;
-      padding: 50px;
-    }
-    .tracker {
-      background: white;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 800px;
-      margin: auto;
-    }
-    h1 {
-      color: #333;
-    }
-    #amount-display {
-      font-size: 3rem;
-      color: #5081F5;
-      margin: 20px 0;
-      position: relative;
-      transition: transform 0.5s ease;
-    }
-    input[type="number"] {
-      padding: 10px;
-      font-size: 1.2rem;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      width: 200px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 1.2rem;
-      background: #5081F5;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #3d66cc;
-    }
-    .bar-chart {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      height: 200px;
-      margin-top: 40px;
-      border-top: 2px solid #ddd;
-      padding-top: 20px;
-    }
-    .bar {
-      width: 40px;
-      background-color: #5081F5;
-      color: white;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      font-size: 0.8rem;
-      border-radius: 4px 4px 0 0;
-    }
-  </style>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển Tiền Giả Lập</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .amount-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2ecc71;
+            margin: 20px 0;
+        }
+
+        .money-column {
+            width: 50px;
+            height: 200px;
+            background-color: #f5f5f5;
+            margin: 10px auto;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .bar {
+            width: 100%;
+            background-color: red;
+            transition: height 0.5s ease-in-out;
+        }
+
+        .controls input {
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .controls button:hover {
+            background-color: #2980b9;
+        }
+    </style>
 </head>
 <body>
-  <div class="tracker">
-    <h1>Tổng tiền nhận được</h1>
-    <div id="amount-display">0 VNĐ</div>
-    <input type="number" id="donation-input" placeholder="Nhập số tiền..." />
-    <br />
-    <button onclick="addDonation()">Xác nhận chuyển</button>
+    <div class="container">
+        <h1>Chuyển Tiền</h1>
+        <div class="amount-display">
+            <span id="moneyAmount">0</span> VND
+        </div>
+        <div class="money-column">
+            <div id="moneyBar" class="bar"></div>
+        </div>
+        <div class="controls">
+            <input type="number" id="moneyInput" placeholder="Nhập số tiền" />
+            <button onclick="simulateTransfer()">Chuyển Tiền</button>
+        </div>
+    </div>
 
-    <div class="bar-chart" id="bar-chart"></div>
-  </div>
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZ8srN4TisQ9aXIRW_I_FfX5mjW3jfFKc",
+            authDomain: "liveaution.firebaseapp.com",
+            databaseURL: "https://liveaution-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "liveaution",
+            storageBucket: "liveaution.firebasestorage.app",
+            messagingSenderId: "407847033014",
+            appId: "1:407847033014:web:8acb84d712bd743781ee17"
+        };
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZ8srN4TisQ9aXIRW_I_FfX5mjW3jfFKc",
-      authDomain: "liveaution.firebaseapp.com",
-      databaseURL: "https://liveaution-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "liveaution",
-      storageBucket: "liveaution.firebasestorage.app",
-      messagingSenderId: "407847033014",
-      appId: "1:407847033014:web:8acb84d712bd743781ee17"
-    };
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const totalRef = db.ref("totalAmount");
-    const logRef = db.ref("donationLog");
+        // Hàm giả lập chuyển tiền và cập nhật Firebase
+        function simulateTransfer() {
+            let inputAmount = document.getElementById('moneyInput').value;
+            if (inputAmount && !isNaN(inputAmount)) {
+                let moneyElement = document.getElementById('moneyAmount');
+                let moneyBar = document.getElementById('moneyBar');
+                let currentAmount = 0;
+                let targetAmount = parseInt(inputAmount);
+                
+                // Lưu số tiền vào Firebase
+                firebase.database().ref('transfer').set({
+                    amount: targetAmount
+                });
 
-    function formatCurrency(value) {
-      return value.toLocaleString('vi-VN') + ' VNĐ';
-    }
+                let interval = setInterval(() => {
+                    if (currentAmount < targetAmount) {
+                        currentAmount += Math.ceil(targetAmount / 50);  // tốc độ tăng số tiền
+                        if (currentAmount > targetAmount) currentAmount = targetAmount;
+                        moneyElement.textContent = currentAmount;
+                        let barHeight = (currentAmount / targetAmount) * 200; // chiều cao cột tiền
+                        moneyBar.style.height = barHeight + "px";
+                    } else {
+                        clearInterval(interval);
+                    }
+                }, 50);
+            } else {
+                alert("Vui lòng nhập số tiền hợp lệ!");
+            }
+        }
 
-    function updateDisplay(total) {
-      const amountDisplay = document.getElementById('amount-display');
-      
-      // Add "move up and down" animation on update
-      amountDisplay.style.transform = 'translateY(-20px)';
-      
-      setTimeout(() => {
-        amountDisplay.style.transform = 'translateY(0)';
-        amountDisplay.textContent = formatCurrency(total);
-      }, 500);
-    }
-
-    function addDonation() {
-      const input = document.getElementById('donation-input');
-      const value = parseInt(input.value);
-      if (!isNaN(value) && value > 0) {
-        totalRef.transaction(current => (current || 0) + value);
-        logRef.push({ amount: value, timestamp: Date.now() });
-        input.value = '';
-      } else {
-        alert('Vui lòng nhập số tiền hợp lệ');
-      }
-    }
-
-    function renderBars(data) {
-      const chart = document.getElementById('bar-chart');
-      chart.innerHTML = '';
-      data.forEach(item => {
-        const bar = document.createElement('div');
-        bar.className = 'bar';
-        bar.style.height = Math.min(item.amount / 10, 200) + 'px';
-        bar.textContent = item.amount;
-        chart.appendChild(bar);
-      });
-    }
-
-    totalRef.on("value", snapshot => {
-      const total = snapshot.val() || 0;
-      updateDisplay(total);
-    });
-
-    logRef.on("value", snapshot => {
-      const data = [];
-      snapshot.forEach(child => {
-        data.push(child.val());
-      });
-      renderBars(data);
-    });
-  </script>
+        // Đọc giá trị từ Firebase để cập nhật giao diện
+        firebase.database().ref('transfer').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.amount) {
+                document.getElementById('moneyAmount').textContent = data.amount;
+                let barHeight = (data.amount / 1000) * 200; // giả sử 1000 là số tiền tối đa
+                document.getElementById('moneyBar').style.height = barHeight + "px";
+            }
+        });
+    </script>
 </body>
 </html>
