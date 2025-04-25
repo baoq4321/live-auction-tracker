@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Auction Donation Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f2f2f2;
+      padding: 50px;
+    }
+    .tracker {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      color: #333;
+    }
+    #amount-display {
+      font-size: 3rem;
+      color: #5081F5;
+      margin: 20px 0;
+    }
+    input[type="number"] {
+      padding: 10px;
+      font-size: 1.2rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 200px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background: #5081F5;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #3d66cc;
+    }
+    .donation-log {
+      margin-top: 30px;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+    .donation-log ul {
+      padding-left: 0;
+      list-style: none;
+    }
+    .donation-log li {
+      padding: 5px 0;
+      border-bottom: 1px dashed #ccc;
+      font-size: 1rem;
+    }
+  </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body>
+  <div class="tracker">
+    <h1>Tổng tiền nhận được</h1>
+    <div id="amount-display">0 VNĐ</div>
+    <input type="number" id="donation-input" placeholder="Nhập số tiền..." />
+    <br />
+    <button onclick="addDonation()">Xác nhận chuyển</button>
+
+    <div class="donation-log">
+      <h3>Lịch sử đóng góp</h3>
+      <ul id="donation-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZ8srN4TisQ9aXIRW_I_FfX5mjW3jfFKc",
+      authDomain: "liveaution.firebaseapp.com",
+      databaseURL: "https://liveaution-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "liveaution",
+      storageBucket: "liveaution.firebasestorage.app",
+      messagingSenderId: "407847033014",
+      appId: "1:407847033014:web:8acb84d712bd743781ee17"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const totalRef = db.ref("totalAmount");
+    const logRef = db.ref("donationLog");
+
+    function formatCurrency(value) {
+      return value.toLocaleString('vi-VN') + ' VNĐ';
+    }
+
+    function updateDisplay(total) {
+      document.getElementById('amount-display').textContent = formatCurrency(total);
+    }
+
+    function addDonation() {
+      const input = document.getElementById('donation-input');
+      const value = parseInt(input.value);
+      if (!isNaN(value) && value > 0) {
+        totalRef.transaction(current => (current || 0) + value);
+        logRef.push({ amount: value, timestamp: Date.now() });
+        input.value = '';
+      } else {
+        alert('Vui lòng nhập số tiền hợp lệ');
+      }
+    }
+
+    totalRef.on("value", snapshot => {
+      const total = snapshot.val() || 0;
+      updateDisplay(total);
+    });
+
+    logRef.on("value", snapshot => {
+      const list = document.getElementById('donation-list');
+      list.innerHTML = '';
+      snapshot.forEach(child => {
+        const val = child.val();
+        const li = document.createElement('li');
+        li.textContent = '+ ' + formatCurrency(val.amount);
+        list.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>
