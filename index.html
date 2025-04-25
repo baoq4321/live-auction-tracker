@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Auction Donation Tracker</title>
+  <title>Chuyển tiền quyên góp</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -74,6 +74,24 @@
       text-align: left;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
+    .summary-table {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      text-align: left;
+      font-size: 1.1rem;
+    }
+    .summary-table div {
+      width: 48%;
+      background: #f9faff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .summary-table h3 {
+      margin-bottom: 10px;
+      color: #5081F5;
+    }
   </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -86,6 +104,16 @@
     <input type="number" id="donation-input" placeholder="Nhập số tiền..." />
     <br />
     <button onclick="addDonation()">Xác nhận chuyển</button>
+    <div class="summary-table">
+      <div>
+        <h3>Thời gian</h3>
+        <ul id="time-summary"></ul>
+      </div>
+      <div>
+        <h3>Số tiền</h3>
+        <ul id="money-summary"></ul>
+      </div>
+    </div>
     <h2>Lịch sử chuyển tiền</h2>
     <ul id="donation-log"></ul>
   </div>
@@ -155,6 +183,14 @@
       const date = new Date(log.timestamp);
       li.textContent = `${formatCurrency(log.amount)} lúc ${date.toLocaleString('vi-VN')}`;
       document.getElementById("donation-log").prepend(li);
+
+      const timeLi = document.createElement("li");
+      timeLi.textContent = date.toLocaleString('vi-VN');
+      document.getElementById("time-summary").prepend(timeLi);
+
+      const moneyLi = document.createElement("li");
+      moneyLi.textContent = formatCurrency(log.amount);
+      document.getElementById("money-summary").prepend(moneyLi);
     });
   </script>
 </body>
