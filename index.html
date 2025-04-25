@@ -1,141 +1,164 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Chuyển tiền quyen góp</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Auction Donation Tracker</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .box {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      font-family: Arial, sans-serif;
       text-align: center;
-      width: 320px;
+      background: #f2f2f2;
+      padding: 50px;
+    }
+    .tracker {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: auto;
     }
     h1 {
-      margin-bottom: 20px;
       color: #333;
     }
-    input {
-      width: 100%;
+    #amount-display {
+      font-size: 3rem;
+      color: #5081F5;
+      margin: 20px 0;
+    }
+    input[type="number"] {
       padding: 10px;
-      font-size: 16px;
-      margin-bottom: 15px;
-      border-radius: 6px;
+      font-size: 1.2rem;
+      border-radius: 10px;
       border: 1px solid #ccc;
+      width: 200px;
     }
     button {
       padding: 10px 20px;
-      background: #3498db;
-      color: #fff;
-      font-size: 16px;
+      font-size: 1.2rem;
+      background: #5081F5;
+      color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
+      margin-top: 10px;
     }
-    .amount {
-      font-size: 28px;
-      margin: 20px 0;
-      color: #27ae60;
+    button:hover {
+      background: #3d66cc;
     }
-    .bar-container {
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
       height: 200px;
-      width: 50px;
-      background: #eee;
-      margin: 10px auto;
-      border-radius: 6px;
-      overflow: hidden;
-      position: relative;
+      margin-top: 40px;
+      border-top: 2px solid #ddd;
+      padding-top: 20px;
     }
     .bar {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      background: red;
-      transition: height 0.3s ease-in-out;
+      width: 40px;
+      background-color: #5081F5;
+      color: white;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      font-size: 0.8rem;
+      border-radius: 4px 4px 0 0;
     }
   </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div class="box">
-    <h1>Chuyển Tiền</h1>
-    <input type="number" id="moneyInput" placeholder="Nhập số tiền (0 - 10 tỷ)" />
-    <button onclick="simulateTransfer()">Chuyển</button>
-    <div class="amount"><span id="moneyAmount">0</span> VND</div>
-    <div class="bar-container">
-      <div class="bar" id="moneyBar"></div>
-    </div>
+  <div class="tracker">
+    <h1>Tổng tiền nhận được</h1>
+    <div id="amount-display" data-value="0">0 VNĐ</div>
+    <input type="number" id="donation-input" placeholder="Nhập số tiền..." />
+    <br />
+    <button onclick="addDonation()">Xác nhận chuyển</button>
+
+    <div class="bar-chart" id="bar-chart"></div>
   </div>
 
   <script>
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAZ8srN4TisQ9aXIRW_I_FfX5mjW3jfFKc",
       authDomain: "liveaution.firebaseapp.com",
       databaseURL: "https://liveaution-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "liveaution",
-      storageBucket: "liveaution.appspot.com",
+      storageBucket: "liveaution.firebasestorage.app",
       messagingSenderId: "407847033014",
       appId: "1:407847033014:web:8acb84d712bd743781ee17"
     };
-    const app = firebase.initializeApp(firebaseConfig);
+
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const totalRef = db.ref("totalAmount");
+    const logRef = db.ref("donationLog");
 
-    let currentAmount = 0;
+    function formatCurrency(value) {
+      return value.toLocaleString('vi-VN') + ' VNĐ';
+    }
 
-    function simulateTransfer() {
-      const input = document.getElementById("moneyInput");
+    function updateDisplay(newTotal) {
+      const amountDisplay = document.getElementById('amount-display');
+      let current = parseInt(amountDisplay.dataset.value || "0");
+      let start = current;
+      let end = newTotal;
+      let duration = 1000;
+      let startTime = null;
+
+      function animate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        amountDisplay.textContent = formatCurrency(value);
+        amountDisplay.dataset.value = value;
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function addDonation() {
+      const input = document.getElementById('donation-input');
       const value = parseInt(input.value);
-
-      if (isNaN(value) || value < 0 || value > 10000000000) {
-        alert("Nhập số tiền từ 0 đến 10,000,000,000");
-        return;
+      if (!isNaN(value) && value > 0) {
+        totalRef.transaction(current => (current || 0) + value);
+        logRef.push({ amount: value, timestamp: Date.now() });
+        input.value = '';
+      } else {
+        alert('Vui lòng nhập số tiền hợp lệ');
       }
-
-      // Cập nhật Firebase
-      db.ref("transfer").set({ amount: value });
-
-      animateChange(value);
     }
 
-    function animateChange(target) {
-      clearInterval(window.animationInterval);
-
-      const display = document.getElementById("moneyAmount");
-      const bar = document.getElementById("moneyBar");
-
-      window.animationInterval = setInterval(() => {
-        if (currentAmount === target) {
-          clearInterval(window.animationInterval);
-          return;
-        }
-
-        let diff = Math.ceil(Math.abs(currentAmount - target) / 10);
-        currentAmount += (target > currentAmount ? diff : -diff);
-
-        display.textContent = currentAmount.toLocaleString();
-        bar.style.height = `${(currentAmount / 10000000000) * 200}px`;
-      }, 50);
+    function renderBars(data) {
+      const chart = document.getElementById('bar-chart');
+      chart.innerHTML = '';
+      data.forEach(item => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = Math.min(item.amount / 10, 200) + 'px';
+        bar.textContent = item.amount;
+        chart.appendChild(bar);
+      });
     }
 
-    // Tự động cập nhật từ Firebase
-    db.ref("transfer").on("value", snap => {
-      if (snap.exists()) {
-        const data = snap.val();
-        if (data.amount !== undefined) {
-          animateChange(data.amount);
-        }
-      }
+    totalRef.on("value", snapshot => {
+      const total = snapshot.val() || 0;
+      updateDisplay(total);
+    });
+
+    logRef.on("value", snapshot => {
+      const data = [];
+      snapshot.forEach(child => {
+        data.push(child.val());
+      });
+      renderBars(data);
     });
   </script>
 </body>
